@@ -1,0 +1,25 @@
+@import "utils/libs";
+@import "utils/vars";
+@import "utils/mixins";
+@import "utils/fonts";
+
+@import "universal";
+
+body, html {
+  height: 100vh;
+  width: 100%;
+  background-color: gray;
+  overflow: hidden;
+}
+
+.wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+@import "modules/mapInput";

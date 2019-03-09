@@ -1,0 +1,52 @@
+* {
+	margin: 0;
+	padding: 0;
+	font: inherit;
+}
+
+*, *:before, *:after {
+	/*-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;*/
+	box-sizing: border-box;
+}
+
+*:focus, *:active, *:hover {
+	outline: none;
+}
+
+html {
+	font-family: sans-serif;
+	cursor: default;
+	height: 100%;
+}
+
+body {
+	height: 100%;
+	width: 100%;
+}
+
+ol, ul, li {
+	list-style-type: none;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+img {
+	min-width: 100%;
+	max-height: 100%;
+	border: none;
+}
+
+a {
+	text-decoration: none;
+	cursor: pointer;
+	color: inherit;
+	background: transparent;
+}
+
+h1, h2, h3 {
+	margin: 0;
+}
