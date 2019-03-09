@@ -1,7 +1,7 @@
 {
-  "name": "geoapi",
+  "name": "Geo-API",
   "version": "1.0.0",
-  "description": "geoapi",
+  "description": "work with yandex.maps api",
   "main": "index.js",
   "scripts": {
     "dev": "webpack-dev-server --open --config ./webpack_config/webpack.dev.conf.js",
@@ -11,7 +11,7 @@
     "> 1%",
     "last 3 version"
   ],
-  "author": "Ivan",
+  "author": "Klimenko Ivan",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.2.0",
