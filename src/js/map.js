@@ -13,12 +13,16 @@ function init() {
   map.behaviors.disable(['dblClickZoom'])
 
   map.events.add('click', event => {
-    let [x, y] = event.get('coords');
+    let coords = event.get('coords');
+    let input = document.querySelector(".map-input");
+    getComputedStyle(input).display === "flex" ? input.style.display = "none" : input.style.display = "flex"
+    // как найти координаты clientY clientX из этого эвента?
+    console.log(event)
 
     // это нам понадобится для выведения адреса в попап
-    getClickLocation([x, y]).then(address => console.log(address))
+    getClickLocation(coords).then(address => console.log(address))
 
-    // let placemark = new ymaps.Placemark([x, y]);
+    // let placemark = new ymaps.Placemark(coords);
     // map.geoObjects.add(placemark);
   })
 }

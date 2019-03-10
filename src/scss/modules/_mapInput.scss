@@ -1,8 +1,11 @@
 .map-input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1000000000;
     display: flex;
     flex-direction: column;
     width: 380px;
-    height: 520px;
     background-color: #ffffff;
     border-radius: 10px 10px 10px 10px;
 
@@ -11,6 +14,38 @@
         font-size: 12px;
         background-color: #ff8663;
         border-radius: 10px 10px 0px 0px;
+
+        display: flex;
+        justify-content: space-between;
+    }
+
+    &__close {
+        position: relative;
+        cursor: pointer;
+        margin-right: 5%;
+        background-color: #fff;
+        transition: 0.3s;
+        
+        &:hover {
+            opacity: 1;
+            background-color: #4f4f4f;
+        }
+        &:before, &:after {
+            top: -2px;
+            position: absolute;
+            left: 0px;
+            content: ' ';
+            height: 16px;
+            width: 4px;
+            border-radius: 2px;
+            background-color: inherit;
+        }
+        &:before {
+            transform: rotate(45deg);
+        }
+        &:after {
+            transform: rotate(-45deg);
+        }
     }
 
     &__feedback {
@@ -87,6 +122,7 @@
         color: #ff9071;
         text-transform: uppercase;
         font-size: 12px;
+        font-weight: bold;
         margin-bottom: 10px;
     }
 
@@ -102,11 +138,6 @@
 
         &:first-child {
             margin-top: 15px;
-        }
-
-        &:nth-child(4) {
-            overflow: hidden;
-            min-height: 128px;
         }
 
         &:focus {
