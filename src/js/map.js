@@ -52,7 +52,7 @@ function init() {
     let inputName = inputFields[0].value;
     let inputPlace = inputFields[1].value;
     let inputFeedback = inputFields[2].value;
-    let formattedTime = formatDate(new Date);
+    let inputDate = formatDate(new Date);
 
     placemarkDataObj = {
       coords: coords,
@@ -62,7 +62,7 @@ function init() {
         inputName: inputName,
         inputPlace: inputPlace,
         inputFeedback: inputFeedback,
-        inputDate: formattedTime
+        inputDate: inputDate
       }
     }
 
@@ -86,6 +86,7 @@ function init() {
 
   inputCloseButton.addEventListener('click', () => inputBlock.style.display = 'none')
 
+  // при открытии балуна кластера, там есть ссылка, которая должна вести на инпут этого элемента
   document.addEventListener('click', event => {
     if (event.target.classList.contains('baloon__link-btn')) {
       event.preventDefault();
@@ -93,6 +94,7 @@ function init() {
     }
   })
 
+  // получаем асинхронно адрес по координатам клика через апи карт
   function getClickLocation(coords) {
     return new Promise((resolve, reject) => {
       ymaps.geocode(coords).then(res => {
@@ -126,6 +128,9 @@ function init() {
     objId++;
   }
 
+  // функция открытия инпута для добавления метки. тут я пытался реализовать полиморфизм
+  // и сделать так чтобы оно уж там само решало откуда её вызывают и соответственно реагировало
+  // получилось по ходу как-то не очень красиво...
   function openInput(event) {
     inputFeedbackList.innerHTML = 'Пока отзывов нету';
 
@@ -162,7 +167,7 @@ function init() {
       return
     }
     // если был совершен клик на метку, objectId !== undefined
-    // если же клик был просто по карте и coords !== undefined, то обрабатывается по другому
+    // поэтому здесь либо мы кликаем на метку, либо на карту
     if (event.get('objectId') >= 0) {
       inputFeedbackList.innerHTML = '';
 
@@ -205,7 +210,6 @@ function init() {
   }
 
   function formatDate(date) {
-
     let dd = date.getDate();
     if (dd < 10) dd = '0' + dd;
 
@@ -218,6 +222,7 @@ function init() {
     return dd + '.' + mm + '.' + yy;
   }
 
+  // формирование li-шки отзыва в окно инпута при открытии его для уже существующих меток
   function formFeedbackItem(placemarkDataObj) {
     let item = document.createElement('li');
     item.classList.add('map-input__feedback-item');
