@@ -202,13 +202,20 @@ function init() {
       let objId = event.get('objectId');
       let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
 
+      // ищем адрес/кординаты метке по её objId
       for (let i = 0; i < placemarksStorage.length; i++) {
         if (placemarksStorage[i].objId === objId) {
           coords = placemarksStorage[i].coords;
           inputHeaderText.innerText = placemarksStorage[i].address;
-          let feedbackItem = formFeedbackItem(placemarksStorage[i]);
 
-          inputFeedbackList.appendChild(feedbackItem);
+          // затем добавляем в инпут все метки по данному адресу
+          for (let i = 0; i < placemarksStorage.length; i++) {
+            if (placemarksStorage[i].address === address) {
+              let feedbackItem = formFeedbackItem(placemarksStorage[i]);
+
+              inputFeedbackList.appendChild(feedbackItem);
+            }
+          }
         }
       }
 
