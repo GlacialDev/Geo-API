@@ -86,6 +86,13 @@ function init() {
 
   inputCloseButton.addEventListener('click', () => inputBlock.style.display = 'none')
 
+  document.addEventListener('click', event => {
+    if (event.target.classList.contains('baloon__link-btn')) {
+      event.preventDefault();
+      openInput(event);
+    }
+  })
+
   function getClickLocation(coords) {
     return new Promise((resolve, reject) => {
       ymaps.geocode(coords).then(res => {
@@ -105,9 +112,9 @@ function init() {
         "coordinates": options.coords
       },
       "properties": {
-        "balloonContentHeader": `<font size=3><b>${options.feedback.inputName} ${options.feedback.inputPlace}</b></font>`,
-        "balloonContentBody": `<p>${options.feedback.inputFeedback}</p>`, "balloonContentFooter": `${options.feedback.inputDate}`,
-        "clusterCaption": `<p><b>${options.feedback.inputPlace}</b></p><p><a href="#">${options.address}</a></p><p>${options.feedback.inputFeedback}</p>`
+        "balloonContentHeader": `<b>${options.feedback.inputPlace}</b>`,
+        "balloonContentBody": `<a class="baloon__link-btn">${options.address}</a><br><br><p>${options.feedback.inputFeedback}</p>`,
+        "balloonContentFooter": `${options.feedback.inputDate}`,
       }
     };
 
@@ -120,6 +127,32 @@ function init() {
   }
 
   function openInput(event) {
+    inputFeedbackList.innerHTML = 'Пока отзывов нету';
+
+    // если у события есть таргет, значит была нажата ссылка
+    if (typeof event.target !== 'undefined') {
+      address = event.target.innerText;
+      let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+
+      inputFeedbackList.innerHTML = '';
+      for (let i = 0; i < placemarksStorage.length; i++) {
+        if (placemarksStorage[i].address === address) {
+          coords = placemarksStorage[i].coords;
+          inputHeaderText.innerText = placemarksStorage[i].address;
+          let feedbackItem = formFeedbackItem(placemarksStorage[i]);
+          inputFeedbackList.appendChild(feedbackItem);
+        }
+      }
+
+      document.querySelector(".ymaps-2-1-73-balloon__close").dispatchEvent(new Event('click'))
+
+      inputBlock.style.left = `${event.clientX}px`;
+      inputBlock.style.top = `${event.clientY}px`;
+      inputBlock.style.display = 'flex';
+
+      return;
+    }
+
     let inputPositionX = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientX}px`;
     let inputPositionY = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY}px`;
 
@@ -129,12 +162,12 @@ function init() {
       return
     }
     // если был совершен клик на метку, objectId !== undefined
-    // если же клик был просто по карте, то обрабатывается по другому
-    if (event.get('objectId')) {
+    // если же клик был просто по карте и coords !== undefined, то обрабатывается по другому
+    if (event.get('objectId') >= 0) {
+      inputFeedbackList.innerHTML = '';
+
       let objId = event.get('objectId');
       let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
-
-      inputFeedbackList.innerHTML = '';
       for (let i = 0; i < placemarksStorage.length; i++) {
         if (placemarksStorage[i].objId === objId) {
           coords = placemarksStorage[i].coords;
@@ -150,8 +183,8 @@ function init() {
     } else {
       coords = event.get('coords');
 
-      // закрываем попап со старым адресом в заголовке
-      // позже покажем попап уже с новым адресом
+      // закрываем попап со старыми отзывами и адресом в заголовке
+      // позже покажем попап уже с новым адресом/отзывами
       inputBlock.style.display = 'none';
 
       inputBlock.style.left = inputPositionX;
@@ -165,22 +198,21 @@ function init() {
           for (let i = 0; i < inputFields.length; i++) {
             inputFields[i].value = '';
           }
-          inputFeedbackList.innerHTML = '';
+          inputFeedbackList.innerHTML = 'Пока отзывов нету';
           inputBlock.style.display = 'flex';
         })
     }
-
   }
 
   function formatDate(date) {
 
-    var dd = date.getDate();
+    let dd = date.getDate();
     if (dd < 10) dd = '0' + dd;
 
-    var mm = date.getMonth() + 1;
+    let mm = date.getMonth() + 1;
     if (mm < 10) mm = '0' + mm;
 
-    var yy = date.getFullYear() % 100;
+    let yy = date.getFullYear() % 100;
     if (yy < 10) yy = '0' + yy;
 
     return dd + '.' + mm + '.' + yy;
@@ -195,8 +227,7 @@ function init() {
       <div class="map-input__feedback-place">${placemarkDataObj.feedback.inputPlace}</div>
       <div class="map-input__feedback-date">${placemarkDataObj.feedback.inputDate}</div>
     </div>
-    <div class="map-input__feedback-text">${placemarkDataObj.feedback.inputFeedback}</div>
-    `
+    <div class="map-input__feedback-text">${placemarkDataObj.feedback.inputFeedback}</div>`
 
     return item;
   }
