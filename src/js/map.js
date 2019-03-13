@@ -236,4 +236,59 @@ function init() {
 
     return item;
   }
+
+  // вешаем возможность перетаскивать инпут 
+  (function drag(elem) {
+    let elem_header = elem.querySelector('.map-input__header');
+
+    elem_header.onmousedown = function (e) {
+      // вычисляем ширину/высоту топ/лефт параметры элемента
+      let elem_width = elem.getBoundingClientRect().width;
+      let elem_height = elem.getBoundingClientRect().height;
+      let coords = getCoords(elem);
+      // вычисляем сдвиг позиции события относительно позиции элемента
+      let shiftX = e.pageX - coords.left;
+      let shiftY = e.pageY - coords.top;
+      elem.style.position = "absolute";
+      elem.style.zIndex = 1000;
+
+      document.onmousemove = function (e) {
+        moveAt(e);
+      };
+
+      document.onmouseup = function () {
+        document.onmousemove = null;
+      };
+
+      function moveAt(e) {
+        let Xcoord = e.pageX - shiftX;
+        let Ycoord = e.pageY - shiftY;
+        // не даем утянуть блок выше/ниже окна браузера
+        if (Xcoord < 0) Xcoord = 0;
+        else if (Xcoord + elem_width > window.innerWidth) {
+          Xcoord = window.innerWidth - elem_width;
+        }
+        // не даем утянуть блок левее/правее окна браузера
+        if (Ycoord < 0) Ycoord = 0;
+        else if (Ycoord + elem_height > window.innerHeight) {
+          Ycoord = window.innerHeight - elem_height;
+        }
+        elem.style.left = Xcoord + "px";
+        elem.style.top = Ycoord + "px";
+      }
+    };
+
+    elem_header.ondragstart = function () {
+      return false;
+    };
+
+    function getCoords(elem) {
+      let box = elem.getBoundingClientRect();
+      return {
+        top: box.top + pageYOffset,
+        left: box.left + pageXOffset
+      };
+    }
+  })(inputBlock)
 }
+
