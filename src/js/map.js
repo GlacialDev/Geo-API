@@ -35,8 +35,11 @@ function init() {
   // если в localstorage сохранены какие-то данные о метках, поставленных ранее
   // пробегаем по массиву и проставляем эти метки на карте
   if (localStorage.placemarksStorage) {
-    let placemarksStorage = JSON.parse(localStorage.placemarksStorage)
-    for (objId; objId < placemarksStorage.length;) addPlacemark(placemarksStorage[objId]);
+    let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+
+    for (objId; objId < placemarksStorage.length;) {
+      addPlacemark(placemarksStorage[objId]);
+    }
   }
 
   const inputBlock = document.querySelector('.map-input');
@@ -56,16 +59,19 @@ function init() {
 
     if (inputName.trim() === '') {
       alert('Вы не ввели имя!');
+
       return
     } else if (inputPlace.trim() === '') {
       alert('Вы не ввели место!');
+
       return
     } else if (inputFeedback.trim() === '') {
       alert('Вы не написали отзыв!');
+
       return
     }
 
-    placemarkDataObj = {
+    let placemarkDataObj = {
       coords: coords,
       address: address,
       objId: objId,
@@ -82,6 +88,7 @@ function init() {
     // в localstorage параметр в виде строки; он либо уже содержит данные, либо его нет
     // либо мы парсим строку, получая массив, либо создаем пустой массив
     let placemarksStorage = localStorage.placemarksStorage ? JSON.parse(localStorage.placemarksStorage) : [];
+
     // добавляем в этот массив данные о новой метке
     placemarksStorage.push(placemarkDataObj);
     // преобразуем полученный массив обратно в строку
@@ -108,32 +115,36 @@ function init() {
   // получаем асинхронно адрес по координатам клика через апи карт
   function getClickLocation(coords) {
     return new Promise((resolve, reject) => {
-      ymaps.geocode(coords).then(res => {
-        let geoObject = res.geoObjects.get(0);
-        let clickLocation = geoObject.getAddressLine();
-        resolve(clickLocation)
-      })
+      ymaps.geocode(coords)
+        .then(res => {
+          let geoObject = res.geoObjects.get(0);
+          let clickLocation = geoObject.getAddressLine();
+
+          resolve(clickLocation)
+        })
+        .catch(e => reject(e))
     })
   }
 
   function addPlacemark(options) {
     let featuresObj = {
-      "type": "Feature",
-      "id": options.objId,
-      "geometry": {
-        "type": "Point",
-        "coordinates": options.coords
+      'type': 'Feature',
+      'id': options.objId,
+      'geometry': {
+        'type': 'Point',
+        'coordinates': options.coords
       },
-      "properties": {
-        "balloonContentHeader": `<b>${options.feedback.inputPlace}</b>`,
-        "balloonContentBody": `<a class="baloon__link-btn">${options.address}</a><br><br><p>${options.feedback.inputFeedback}</p>`,
-        "balloonContentFooter": `${options.feedback.inputDate}`,
+      'properties': {
+        'balloonContentHeader': `<b>${options.feedback.inputPlace}</b>`,
+        'balloonContentBody': `<a class="baloon__link-btn">${options.address}</a>
+                              <br><br><p>${options.feedback.inputFeedback}</p>`,
+        'balloonContentFooter': `${options.feedback.inputDate}`,
       }
     };
 
     objectManager.add({
-      "type": "FeatureCollection",
-      "features": [featuresObj]
+      'type': 'FeatureCollection',
+      'features': [featuresObj]
     });
 
     objId++;
@@ -156,11 +167,12 @@ function init() {
           coords = placemarksStorage[i].coords;
           inputHeaderText.innerText = placemarksStorage[i].address;
           let feedbackItem = formFeedbackItem(placemarksStorage[i]);
+
           inputFeedbackList.appendChild(feedbackItem);
         }
       }
 
-      document.querySelector(".ymaps-2-1-73-balloon__close").dispatchEvent(new Event('click'))
+      document.querySelector('.ymaps-2-1-73-balloon__close').dispatchEvent(new Event('click'))
 
       inputBlock.style.left = `${event.clientX}px`;
       inputBlock.style.top = `${event.clientY}px`;
@@ -175,8 +187,11 @@ function init() {
     let inputPositionY = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY}px`;
 
     // если кликаем в то же место, где только что открыли попап - закрываем его
-    if (inputPositionX === inputBlock.style.left && inputPositionY === inputBlock.style.top && inputBlock.style.display !== 'none') {
+    if (inputPositionX === inputBlock.style.left &&
+      inputPositionY === inputBlock.style.top &&
+      inputBlock.style.display !== 'none') {
       inputBlock.style.display = 'none';
+
       return
     }
     // если был совершен клик на метку, objectId !== undefined
@@ -186,11 +201,13 @@ function init() {
 
       let objId = event.get('objectId');
       let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+
       for (let i = 0; i < placemarksStorage.length; i++) {
         if (placemarksStorage[i].objId === objId) {
           coords = placemarksStorage[i].coords;
           inputHeaderText.innerText = placemarksStorage[i].address;
           let feedbackItem = formFeedbackItem(placemarksStorage[i]);
+
           inputFeedbackList.appendChild(feedbackItem);
         }
       }
@@ -242,31 +259,41 @@ function init() {
     let Xcoord = positionX - shiftX;
     let Ycoord = positionY - shiftY;
 
-    console.log(shiftX, shiftY)
     // не даем утянуть блок выше/ниже окна браузера
-    if (Xcoord < 0) Xcoord = 0;
-    else if (Xcoord + inputBlockWidth > window.innerWidth) {
+    if (Xcoord < 0) {
+      Xcoord = 0;
+    } else if (Xcoord + inputBlockWidth > window.innerWidth) {
       Xcoord = window.innerWidth - inputBlockWidth;
     }
     // не даем утянуть блок левее/правее окна браузера
-    if (Ycoord < 0) Ycoord = 0;
-    else if (Ycoord + inputBlockHeight > window.innerHeight) {
+    if (Ycoord < 0) {
+      Ycoord = 0;
+    } else if (Ycoord + inputBlockHeight > window.innerHeight) {
       Ycoord = window.innerHeight - inputBlockHeight;
     }
 
-    inputBlock.style.left = Xcoord + "px";
-    inputBlock.style.top = Ycoord + "px";
+    inputBlock.style.left = Xcoord + 'px';
+    inputBlock.style.top = Ycoord + 'px';
   }
 
   function formatDate(date) {
     let dd = date.getDate();
-    if (dd < 10) dd = '0' + dd;
+
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
 
     let mm = date.getMonth() + 1;
-    if (mm < 10) mm = '0' + mm;
+
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
 
     let yy = date.getFullYear() % 100;
-    if (yy < 10) yy = '0' + yy;
+
+    if (yy < 10) {
+      yy = '0' + yy;
+    }
 
     return dd + '.' + mm + '.' + yy;
   }
@@ -274,6 +301,7 @@ function init() {
   // формирование li-шки отзыва в окно инпута при открытии его для уже существующих меток
   function formFeedbackItem(placemarkDataObj) {
     let item = document.createElement('li');
+
     item.classList.add('map-input__feedback-item');
     item.innerHTML = `
     <div class="map-input__feedback-text">
@@ -288,9 +316,9 @@ function init() {
 
   // вешаем возможность перетаскивать инпут 
   (function drag(elem) {
-    let elem_header = elem.querySelector('.map-input__header');
+    let elemHeader = elem.querySelector('.map-input__header');
 
-    elem_header.onmousedown = function (e) {
+    elemHeader.onmousedown = function (e) {
       let coords = getCoords(elem);
       // вычисляем сдвиг позиции события относительно позиции элемента
       let shiftX = e.pageX - coords.left;
@@ -305,12 +333,13 @@ function init() {
       };
     };
 
-    elem_header.ondragstart = function () {
+    elemHeader.ondragstart = function () {
       return false;
     };
 
     function getCoords(elem) {
       let box = elem.getBoundingClientRect();
+
       return {
         top: box.top + pageYOffset,
         left: box.left + pageXOffset

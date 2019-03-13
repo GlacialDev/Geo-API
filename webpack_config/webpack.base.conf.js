@@ -23,46 +23,54 @@ module.exports = {
     publicPath: '/'
   },
   module: {
-    rules: [{
-      test: /\.js$/,
-      loader: 'babel-loader',
-      exclude: '/node_modules/'
-    }, {
-      test: /\.(png|jpg|gif|svg)$/,
-      loader: 'file-loader',
-      options: {
-        name: '[name].[ext]'
+    rules: [
+      {
+        test: /\.js$/,
+        use: [
+          'babel-loader',
+          'eslint-loader'
+        ],
+        exclude: '/node_modules/'
+      },
+      {
+        test: /\.(png|jpg|gif|svg)$/,
+        loader: 'file-loader',
+        options: {
+          name: '[name].[ext]'
+        }
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          'style-loader',
+          MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: { sourceMap: true }
+          }, {
+            loader: 'postcss-loader',
+            options: { sourceMap: true, config: { path: path.join(__dirname, './postcss.config.js') } }
+          }, {
+            loader: 'sass-loader',
+            options: { sourceMap: true }
+          }
+        ]
+      },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: { sourceMap: true }
+          }, {
+            loader: 'postcss-loader',
+            options: { sourceMap: true, config: { path: path.join(__dirname, './postcss.config.js') } }
+          }
+        ]
       }
-    }, {
-      test: /\.scss$/,
-      use: [
-        'style-loader',
-        MiniCssExtractPlugin.loader,
-        {
-          loader: 'css-loader',
-          options: { sourceMap: true }
-        }, {
-          loader: 'postcss-loader',
-          options: { sourceMap: true, config: { path: path.join(__dirname, './postcss.config.js') } }
-        }, {
-          loader: 'sass-loader',
-          options: { sourceMap: true }
-        }
-      ]
-    }, {
-      test: /\.css$/,
-      use: [
-        'style-loader',
-        MiniCssExtractPlugin.loader,
-        {
-          loader: 'css-loader',
-          options: { sourceMap: true }
-        }, {
-          loader: 'postcss-loader',
-          options: { sourceMap: true, config: { path: path.join(__dirname, './postcss.config.js') } }
-        }
-      ]
-    }]
+    ]
   },
   plugins: [
     new MiniCssExtractPlugin({
