@@ -154,17 +154,18 @@ function init() {
   // и сделать так чтобы оно уж там само решало откуда её вызывают и соответственно реагировало
   // получилось по ходу как-то не очень красиво...
   function openInput(event) {
-    inputFeedbackList.innerHTML = 'Пока отзывов нету';
-
+    // чистим инпуты перед открытием
+    for (let i = 0; i < inputFields.length; i++) {
+      inputFields[i].value = '';
+    }
     // если у события есть таргет, значит была нажата ссылка
     if (typeof event.target !== 'undefined') {
-      address = event.target.innerText;
       let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
 
-      inputFeedbackList.innerHTML = address;
-      // затем добавляем в инпут все отзывы по данному адресу
+      address = event.target.innerText;
+      inputHeaderText.innerHTML = address;
       getFeedbacksForAdress(address);
-      // и берем координаты первой метки по этому адресу
+      // берем координаты первой метки по этому адресу
       for (let i = 0; i < placemarksStorage.length; i++) {
         if (placemarksStorage[i].address === address) {
           coords = placemarksStorage[i].coords;
@@ -198,8 +199,6 @@ function init() {
     // если был совершен клик на метку, objectId !== undefined
     // поэтому здесь либо мы кликаем на метку, либо на карту
     if (event.get('objectId') >= 0) {
-      inputFeedbackList.innerHTML = '';
-
       let objId = event.get('objectId');
       let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
 
@@ -208,7 +207,6 @@ function init() {
         if (placemarksStorage[i].objId === objId) {
           coords = placemarksStorage[i].coords;
           inputHeaderText.innerText = placemarksStorage[i].address;
-          // затем добавляем в инпут все отзывы по данному адресу
           getFeedbacksForAdress(placemarksStorage[i].address);
         }
       }
@@ -232,14 +230,7 @@ function init() {
           inputHeaderText.innerText = address
         })
         .then(() => {
-          for (let i = 0; i < inputFields.length; i++) {
-            inputFields[i].value = '';
-          }
-          // затем добавляем в инпут все отзывы по данному адресу
           getFeedbacksForAdress(address);
-          if (address === '') {
-            inputFeedbackList.innerHTML = 'Пока отзывов нету';
-          }
           inputBlock.style.display = 'flex';
           fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
         })
@@ -320,14 +311,26 @@ function init() {
   }
 
   function getFeedbacksForAdress(address) {
-    let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+    if (localStorage.placemarksStorage) {
+      inputFeedbackList.innerHTML = ''
+      let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+      let isFeedbackExistsForAddress = false
 
-    for (let i = 0; i < placemarksStorage.length; i++) {
-      if (placemarksStorage[i].address === address) {
-        let feedbackItem = formFeedbackItem(placemarksStorage[i]);
+      for (let i = 0; i < placemarksStorage.length; i++) {
+        if (placemarksStorage[i].address === address) {
+          let feedbackItem = formFeedbackItem(placemarksStorage[i]);
 
-        inputFeedbackList.appendChild(feedbackItem);
+          isFeedbackExistsForAddress = true
+          inputFeedbackList.appendChild(feedbackItem);
+        }
       }
+
+      if (!isFeedbackExistsForAddress) {
+        inputFeedbackList.innerHTML = 'Пока отзывов нету'
+      }
+
+    } else {
+      inputFeedbackList.innerHTML = 'Пока отзывов нету'
     }
   }
 
