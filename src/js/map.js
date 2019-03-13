@@ -54,6 +54,17 @@ function init() {
     let inputFeedback = inputFields[2].value;
     let inputDate = formatDate(new Date);
 
+    if (inputName.trim() === '') {
+      alert('Вы не ввели имя!');
+      return
+    } else if (inputPlace.trim() === '') {
+      alert('Вы не ввели место!');
+      return
+    } else if (inputFeedback.trim() === '') {
+      alert('Вы не написали отзыв!');
+      return
+    }
+
     placemarkDataObj = {
       coords: coords,
       address: address,
