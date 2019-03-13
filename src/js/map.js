@@ -1,3 +1,5 @@
+'use strict'
+
 ymaps.ready(init);
 function init() {
   let map = new ymaps.Map('map',
