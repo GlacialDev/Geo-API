@@ -161,14 +161,15 @@ function init() {
       address = event.target.innerText;
       let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
 
-      inputFeedbackList.innerHTML = '';
+      inputFeedbackList.innerHTML = address;
+      // затем добавляем в инпут все отзывы по данному адресу
+      getFeedbacksForAdress(address);
+      // и берем координаты первой метки по этому адресу
       for (let i = 0; i < placemarksStorage.length; i++) {
         if (placemarksStorage[i].address === address) {
           coords = placemarksStorage[i].coords;
-          inputHeaderText.innerText = placemarksStorage[i].address;
-          let feedbackItem = formFeedbackItem(placemarksStorage[i]);
 
-          inputFeedbackList.appendChild(feedbackItem);
+          break;
         }
       }
 
@@ -207,15 +208,8 @@ function init() {
         if (placemarksStorage[i].objId === objId) {
           coords = placemarksStorage[i].coords;
           inputHeaderText.innerText = placemarksStorage[i].address;
-
-          // затем добавляем в инпут все метки по данному адресу
-          for (let i = 0; i < placemarksStorage.length; i++) {
-            if (placemarksStorage[i].address === address) {
-              let feedbackItem = formFeedbackItem(placemarksStorage[i]);
-
-              inputFeedbackList.appendChild(feedbackItem);
-            }
-          }
+          // затем добавляем в инпут все отзывы по данному адресу
+          getFeedbacksForAdress(placemarksStorage[i].address);
         }
       }
 
@@ -241,7 +235,11 @@ function init() {
           for (let i = 0; i < inputFields.length; i++) {
             inputFields[i].value = '';
           }
-          inputFeedbackList.innerHTML = 'Пока отзывов нету';
+          // затем добавляем в инпут все отзывы по данному адресу
+          getFeedbacksForAdress(address);
+          if (address === '') {
+            inputFeedbackList.innerHTML = 'Пока отзывов нету';
+          }
           inputBlock.style.display = 'flex';
           fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
         })
@@ -319,6 +317,18 @@ function init() {
     <div class="map-input__feedback-text">${placemarkDataObj.feedback.inputFeedback}</div>`
 
     return item;
+  }
+
+  function getFeedbacksForAdress(address) {
+    let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+
+    for (let i = 0; i < placemarksStorage.length; i++) {
+      if (placemarksStorage[i].address === address) {
+        let feedbackItem = formFeedbackItem(placemarksStorage[i]);
+
+        inputFeedbackList.appendChild(feedbackItem);
+      }
+    }
   }
 
   // вешаем возможность перетаскивать инпут 
