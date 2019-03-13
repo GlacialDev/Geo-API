@@ -155,6 +155,8 @@ function init() {
       inputBlock.style.top = `${event.clientY}px`;
       inputBlock.style.display = 'flex';
 
+      fixInputView(event.clientX, event.clientY);
+
       return;
     }
 
@@ -185,6 +187,7 @@ function init() {
       inputBlock.style.left = inputPositionX;
       inputBlock.style.top = inputPositionY;
       inputBlock.style.display = 'flex';
+      fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
     } else {
       coords = event.get('coords');
 
@@ -205,8 +208,43 @@ function init() {
           }
           inputFeedbackList.innerHTML = 'Пока отзывов нету';
           inputBlock.style.display = 'flex';
+          fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
         })
     }
+  }
+
+  // вспомогательная функция, которая не дает уйти инпуту за пределы window
+  // должна вызываться после установления display: flex
+  // так как при display: none параметры height и widht = 0
+  function fixInputView(positionX, positionY, ...rest) {
+    let inputBlockWidth = inputBlock.getBoundingClientRect().width;
+    let inputBlockHeight = inputBlock.getBoundingClientRect().height;
+    let inputBlockLeft = inputBlock.getBoundingClientRect().left;
+    let inputBlockTop = inputBlock.getBoundingClientRect().top;
+
+    // используем вычисленный ранее сдвиг позиции события относительно позиции элемента
+    // и используем данную функцию при перетаскивании инпута, либо если сдвиг не задан, вычисляем его
+    let shiftX = rest[0] || positionX - inputBlockLeft;
+    let shiftY = rest[1] || positionY - inputBlockTop;
+
+    // и реальную позицию элемента с учетом этого сдвига
+    let Xcoord = positionX - shiftX;
+    let Ycoord = positionY - shiftY;
+
+    console.log(shiftX, shiftY)
+    // не даем утянуть блок выше/ниже окна браузера
+    if (Xcoord < 0) Xcoord = 0;
+    else if (Xcoord + inputBlockWidth > window.innerWidth) {
+      Xcoord = window.innerWidth - inputBlockWidth;
+    }
+    // не даем утянуть блок левее/правее окна браузера
+    if (Ycoord < 0) Ycoord = 0;
+    else if (Ycoord + inputBlockHeight > window.innerHeight) {
+      Ycoord = window.innerHeight - inputBlockHeight;
+    }
+
+    inputBlock.style.left = Xcoord + "px";
+    inputBlock.style.top = Ycoord + "px";
   }
 
   function formatDate(date) {
@@ -242,40 +280,18 @@ function init() {
     let elem_header = elem.querySelector('.map-input__header');
 
     elem_header.onmousedown = function (e) {
-      // вычисляем ширину/высоту топ/лефт параметры элемента
-      let elem_width = elem.getBoundingClientRect().width;
-      let elem_height = elem.getBoundingClientRect().height;
       let coords = getCoords(elem);
       // вычисляем сдвиг позиции события относительно позиции элемента
       let shiftX = e.pageX - coords.left;
       let shiftY = e.pageY - coords.top;
-      elem.style.position = "absolute";
-      elem.style.zIndex = 1000;
 
       document.onmousemove = function (e) {
-        moveAt(e);
+        fixInputView(e.pageX, e.pageY, shiftX, shiftY)
       };
 
       document.onmouseup = function () {
         document.onmousemove = null;
       };
-
-      function moveAt(e) {
-        let Xcoord = e.pageX - shiftX;
-        let Ycoord = e.pageY - shiftY;
-        // не даем утянуть блок выше/ниже окна браузера
-        if (Xcoord < 0) Xcoord = 0;
-        else if (Xcoord + elem_width > window.innerWidth) {
-          Xcoord = window.innerWidth - elem_width;
-        }
-        // не даем утянуть блок левее/правее окна браузера
-        if (Ycoord < 0) Ycoord = 0;
-        else if (Ycoord + elem_height > window.innerHeight) {
-          Ycoord = window.innerHeight - elem_height;
-        }
-        elem.style.left = Xcoord + "px";
-        elem.style.top = Ycoord + "px";
-      }
     };
 
     elem_header.ondragstart = function () {
