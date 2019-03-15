@@ -234,10 +234,11 @@ function init() {
     // при display: none параметры height/width = 0, поэтому сначала flex, потом расчет правильной позиции
     inputBlock.style.display = 'flex';
 
-    let inputBlockWidth = inputBlock.getBoundingClientRect().width;
-    let inputBlockHeight = inputBlock.getBoundingClientRect().height;
-    let inputBlockLeft = inputBlock.getBoundingClientRect().left;
-    let inputBlockTop = inputBlock.getBoundingClientRect().top;
+    let inputBlockPosition = inputBlock.getBoundingClientRect()
+    let inputBlockWidth = inputBlockPosition.width;
+    let inputBlockHeight = inputBlockPosition.height;
+    let inputBlockLeft = inputBlockPosition.left;
+    let inputBlockTop = inputBlockPosition.top;
 
     // переменные характеризуют сдвиг события относительно top/left позиции инпута
     // могут использовать вычисленный ранее сдвиг (нужно для реализации механизма драга)
