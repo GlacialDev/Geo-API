@@ -40,6 +40,7 @@ function init() {
   if (localStorage.placemarksStorage) {
     let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
 
+    // objID++ происходит внутри addPlacemark(), поэтому его нету в цикле
     for (objId; objId < placemarksStorage.length;) {
       addPlacemark(placemarksStorage[objId]);
     }
