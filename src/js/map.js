@@ -189,8 +189,8 @@ function init() {
   }
 
   function openInputOnPlacemarkClicked(event) {
-    let inputPositionX = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientX}px`;
-    let inputPositionY = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY}px`;
+    let inputPositionX = event.getSourceEvent().originalEvent.domEvent.originalEvent.clientX;
+    let inputPositionY = event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY;
     let objId = event.get('objectId');
     let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
 
@@ -203,12 +203,12 @@ function init() {
       }
     }
 
-    renderInput(parseInt(inputPositionX), parseInt(inputPositionY));
+    renderInput(inputPositionX, inputPositionY);
   }
 
   function openInputOnMapClicked(event) {
-    let inputPositionX = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientX}px`;
-    let inputPositionY = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY}px`;
+    let inputPositionX = event.getSourceEvent().originalEvent.domEvent.originalEvent.clientX;
+    let inputPositionY = event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY;
 
     coords = event.get('coords');
     // закрываем попап со старыми отзывами и адресом в заголовке
@@ -222,7 +222,7 @@ function init() {
       })
       .then(() => {
         getFeedbacksForAdress(address);
-        renderInput(parseInt(inputPositionX), parseInt(inputPositionY));
+        renderInput(inputPositionX, inputPositionY);
       })
       .catch(() => alert('Извините, получить координаты точки не получилось =/'))
   }
