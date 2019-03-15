@@ -24,10 +24,11 @@ function init() {
 
   map.geoObjects.add(objectManager);
   map.behaviors.disable(['dblClickZoom']);
-
   objectManager.objects.options.set('preset', 'islands#darkGreenDotIcon');
-  objectManager.objects.events.add(['click'], openInput)
   objectManager.clusters.options.set('preset', 'islands#darkGreenClusterIcons');
+
+  map.events.add('click', event => openInput(event));
+  objectManager.objects.events.add(['click'], openInput);
 
   // служебные переменные, нужные для создания новых меток
   let coords = [];
@@ -51,25 +52,25 @@ function init() {
   const inputSubmitButton = inputBlock.querySelector('.map-input__button');
   const inputCloseButton = inputBlock.querySelector('.map-input__close');
 
-  map.events.add('click', event => openInput(event))
-
   inputSubmitButton.addEventListener('click', () => {
     let inputName = inputFields[0].value;
     let inputPlace = inputFields[1].value;
     let inputFeedback = inputFields[2].value;
     let inputDate = formatDate(new Date);
+    let isNotValidInput = false
 
     if (inputName.trim() === '') {
-      alert('Вы не ввели имя!');
-
-      return
+      alert('Вы не ввели имя!')
+      isNotValidInput = true
     } else if (inputPlace.trim() === '') {
-      alert('Вы не ввели место!');
-
-      return
+      alert('Вы не ввели место!')
+      isNotValidInput = true
     } else if (inputFeedback.trim() === '') {
-      alert('Вы не написали отзыв!');
+      alert('Вы не поделились впечатлениями!')
+      isNotValidInput = true
+    }
 
+    if (isNotValidInput) {
       return
     }
 
@@ -99,9 +100,6 @@ function init() {
     localStorage.placemarksStorage = placemarksStorage;
 
     inputBlock.style.display = 'none';
-    for (let i = 0; i < inputFields.length; i++) {
-      inputFields[i].value = '';
-    }
   })
 
   inputCloseButton.addEventListener('click', () => inputBlock.style.display = 'none')
@@ -154,94 +152,93 @@ function init() {
 
   // функция открытия инпута для добавления метки. тут я пытался реализовать полиморфизм
   // и сделать так чтобы оно уж там само решало откуда её вызывают и соответственно реагировало
-  // получилось по ходу как-то не очень красиво...
   function openInput(event) {
     // чистим инпуты перед открытием
     for (let i = 0; i < inputFields.length; i++) {
       inputFields[i].value = '';
     }
-    // если у события есть таргет, значит была нажата ссылка
+
+    // если у события есть таргет, значит была нажата ссылка в балуне кластера
     if (typeof event.target !== 'undefined') {
-      let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
-
-      address = event.target.innerText;
-      inputHeaderText.innerHTML = address;
-      getFeedbacksForAdress(address);
-      // берем координаты первой метки по этому адресу
-      for (let i = 0; i < placemarksStorage.length; i++) {
-        if (placemarksStorage[i].address === address) {
-          coords = placemarksStorage[i].coords;
-
-          break;
-        }
-      }
-
-      document.querySelector('.ymaps-2-1-73-balloon__close').dispatchEvent(new Event('click'))
-
-      inputBlock.style.left = `${event.clientX}px`;
-      inputBlock.style.top = `${event.clientY}px`;
-      inputBlock.style.display = 'flex';
-
-      fixInputView(event.clientX, event.clientY);
-
-      return;
+      openInputOnClusterLinkClicked(event);
     }
 
+    // если был совершен клик на метку, objectId !== undefined, в инрм случае - это был клик по карте
+    event.get('objectId') >= 0 ? openInputOnPlacemarkClicked(event) : openInputOnMapClicked(event)
+  }
+
+  function openInputOnClusterLinkClicked(event) {
+    let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+
+    address = event.target.innerText;
+    inputHeaderText.innerHTML = address;
+    getFeedbacksForAdress(address);
+    // берем координаты первой метки по этому адресу
+    for (let i = 0; i < placemarksStorage.length; i++) {
+      if (placemarksStorage[i].address === address) {
+        coords = placemarksStorage[i].coords;
+
+        break;
+      }
+    }
+
+    document.querySelector('.ymaps-2-1-73-balloon__close').dispatchEvent(new Event('click'))
+
+    inputBlock.style.left = `${event.clientX}px`;
+    inputBlock.style.top = `${event.clientY}px`;
+    inputBlock.style.display = 'flex';
+
+    fixInputView(event.clientX, event.clientY);
+  }
+
+  function openInputOnPlacemarkClicked(event) {
+    let inputPositionX = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientX}px`;
+    let inputPositionY = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY}px`;
+    let objId = event.get('objectId');
+    let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+
+    // ищем адрес/кординаты метке по её objId
+    for (let i = 0; i < placemarksStorage.length; i++) {
+      if (placemarksStorage[i].objId === objId) {
+        coords = placemarksStorage[i].coords;
+        inputHeaderText.innerText = placemarksStorage[i].address;
+        getFeedbacksForAdress(placemarksStorage[i].address);
+      }
+    }
+
+    inputBlock.style.left = inputPositionX;
+    inputBlock.style.top = inputPositionY;
+    inputBlock.style.display = 'flex';
+    fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
+  }
+
+  function openInputOnMapClicked(event) {
     let inputPositionX = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientX}px`;
     let inputPositionY = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY}px`;
 
-    // если кликаем в то же место, где только что открыли попап - закрываем его
-    if (inputPositionX === inputBlock.style.left &&
-      inputPositionY === inputBlock.style.top &&
-      inputBlock.style.display !== 'none') {
-      inputBlock.style.display = 'none';
+    coords = event.get('coords');
 
-      return
-    }
-    // если был совершен клик на метку, objectId !== undefined
-    // поэтому здесь либо мы кликаем на метку, либо на карту
-    if (event.get('objectId') >= 0) {
-      let objId = event.get('objectId');
-      let placemarksStorage = JSON.parse(localStorage.placemarksStorage);
+    // закрываем попап со старыми отзывами и адресом в заголовке
+    // позже покажем попап уже с новым адресом/отзывами
+    inputBlock.style.display = 'none';
 
-      // ищем адрес/кординаты метке по её objId
-      for (let i = 0; i < placemarksStorage.length; i++) {
-        if (placemarksStorage[i].objId === objId) {
-          coords = placemarksStorage[i].coords;
-          inputHeaderText.innerText = placemarksStorage[i].address;
-          getFeedbacksForAdress(placemarksStorage[i].address);
-        }
-      }
-
-      inputBlock.style.left = inputPositionX;
-      inputBlock.style.top = inputPositionY;
-      inputBlock.style.display = 'flex';
-      fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
-    } else {
-      coords = event.get('coords');
-
-      // закрываем попап со старыми отзывами и адресом в заголовке
-      // позже покажем попап уже с новым адресом/отзывами
-      inputBlock.style.display = 'none';
-
-      inputBlock.style.left = inputPositionX;
-      inputBlock.style.top = inputPositionY;
-      getClickLocation(coords)
-        .then(result => {
-          address = result;
-          inputHeaderText.innerText = address
-        })
-        .then(() => {
-          getFeedbacksForAdress(address);
-          inputBlock.style.display = 'flex';
-          fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
-        })
-    }
+    inputBlock.style.left = inputPositionX;
+    inputBlock.style.top = inputPositionY;
+    getClickLocation(coords)
+      .then(result => {
+        address = result;
+        inputHeaderText.innerText = address
+      })
+      .then(() => {
+        getFeedbacksForAdress(address);
+        inputBlock.style.display = 'flex';
+        fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
+      })
   }
 
-  // вспомогательная функция, которая не дает уйти инпуту за пределы window
+  // функция, которая не дает уйти инпуту за пределы window
   // должна вызываться после установления display: flex
-  // так как при display: none параметры height и widht = 0
+  // так как при display: none параметры height/width/top/left = 0
   function fixInputView(positionX, positionY, ...rest) {
     let inputBlockWidth = inputBlock.getBoundingClientRect().width;
     let inputBlockHeight = inputBlock.getBoundingClientRect().height;
@@ -276,19 +273,15 @@ function init() {
 
   function formatDate(date) {
     let dd = date.getDate();
+    let mm = date.getMonth() + 1;
+    let yy = date.getFullYear() % 100;
 
     if (dd < 10) {
       dd = '0' + dd;
     }
-
-    let mm = date.getMonth() + 1;
-
     if (mm < 10) {
       mm = '0' + mm;
     }
-
-    let yy = date.getFullYear() % 100;
-
     if (yy < 10) {
       yy = '0' + yy;
     }
