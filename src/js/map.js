@@ -182,6 +182,7 @@ function init() {
       }
     }
 
+    // при открытии инпута мы закрываем балун, для этого генерим событие клика на крестике того балуна
     document.querySelector('.ymaps-2-1-73-balloon__close').dispatchEvent(new Event('click'))
 
     inputBlock.style.left = `${event.clientX}px`;
