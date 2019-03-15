@@ -185,11 +185,7 @@ function init() {
     // при открытии инпута мы закрываем балун, для этого генерим событие клика на крестике того балуна
     document.querySelector('.ymaps-2-1-73-balloon__close').dispatchEvent(new Event('click'))
 
-    inputBlock.style.left = `${event.clientX}px`;
-    inputBlock.style.top = `${event.clientY}px`;
-    inputBlock.style.display = 'flex';
-
-    fixInputView(event.clientX, event.clientY);
+    renderInput(event.clientX, event.clientY);
   }
 
   function openInputOnPlacemarkClicked(event) {
@@ -207,10 +203,7 @@ function init() {
       }
     }
 
-    inputBlock.style.left = inputPositionX;
-    inputBlock.style.top = inputPositionY;
-    inputBlock.style.display = 'flex';
-    fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
+    renderInput(parseInt(inputPositionX), parseInt(inputPositionY));
   }
 
   function openInputOnMapClicked(event) {
@@ -218,13 +211,10 @@ function init() {
     let inputPositionY = `${event.getSourceEvent().originalEvent.domEvent.originalEvent.clientY}px`;
 
     coords = event.get('coords');
-
     // закрываем попап со старыми отзывами и адресом в заголовке
     // позже покажем попап уже с новым адресом/отзывами
     inputBlock.style.display = 'none';
 
-    inputBlock.style.left = inputPositionX;
-    inputBlock.style.top = inputPositionY;
     getClickLocation(coords)
       .then(result => {
         address = result;
@@ -232,44 +222,47 @@ function init() {
       })
       .then(() => {
         getFeedbacksForAdress(address);
-        inputBlock.style.display = 'flex';
-        fixInputView(parseInt(inputPositionX), parseInt(inputPositionY));
+        renderInput(parseInt(inputPositionX), parseInt(inputPositionY));
       })
+      .catch(() => alert('Извините, получить координаты точки не получилось =/'))
   }
 
   // функция, которая не дает уйти инпуту за пределы window
-  // должна вызываться после установления display: flex
-  // так как при display: none параметры height/width/top/left = 0
-  function fixInputView(positionX, positionY, ...rest) {
+  function renderInput(positionX, positionY, ...rest) {
+    inputBlock.style.left = `${positionX}px`;
+    inputBlock.style.top = `${positionY}px`;
+    // при display: none параметры height/width = 0, поэтому сначала flex, потом расчет правильной позиции
+    inputBlock.style.display = 'flex';
+
     let inputBlockWidth = inputBlock.getBoundingClientRect().width;
     let inputBlockHeight = inputBlock.getBoundingClientRect().height;
     let inputBlockLeft = inputBlock.getBoundingClientRect().left;
     let inputBlockTop = inputBlock.getBoundingClientRect().top;
 
-    // используем вычисленный ранее сдвиг позиции события относительно позиции элемента
-    // и используем данную функцию при перетаскивании инпута, либо если сдвиг не задан, вычисляем его
+    // переменные характеризуют сдвиг события относительно top/left позиции инпута
+    // могут использовать вычисленный ранее сдвиг (нужно для реализации механизма драга)
     let shiftX = rest[0] || positionX - inputBlockLeft;
     let shiftY = rest[1] || positionY - inputBlockTop;
 
     // и реальную позицию элемента с учетом этого сдвига
-    let Xcoord = positionX - shiftX;
-    let Ycoord = positionY - shiftY;
+    positionX = positionX - shiftX;
+    positionY = positionY - shiftY;
 
     // не даем утянуть блок выше/ниже окна браузера
-    if (Xcoord < 0) {
-      Xcoord = 0;
-    } else if (Xcoord + inputBlockWidth > window.innerWidth) {
-      Xcoord = window.innerWidth - inputBlockWidth;
+    if (positionX < 0) {
+      positionX = 0;
+    } else if (positionX + inputBlockWidth > window.innerWidth) {
+      positionX = window.innerWidth - inputBlockWidth;
     }
     // не даем утянуть блок левее/правее окна браузера
-    if (Ycoord < 0) {
-      Ycoord = 0;
-    } else if (Ycoord + inputBlockHeight > window.innerHeight) {
-      Ycoord = window.innerHeight - inputBlockHeight;
+    if (positionY < 0) {
+      positionY = 0;
+    } else if (positionY + inputBlockHeight > window.innerHeight) {
+      positionY = window.innerHeight - inputBlockHeight;
     }
 
-    inputBlock.style.left = Xcoord + 'px';
-    inputBlock.style.top = Ycoord + 'px';
+    inputBlock.style.left = `${positionX}px`;
+    inputBlock.style.top = `${positionY}px`;
   }
 
   function formatDate(date) {
@@ -341,7 +334,7 @@ function init() {
       let shiftY = e.pageY - coords.top;
 
       document.onmousemove = function (e) {
-        fixInputView(e.pageX, e.pageY, shiftX, shiftY)
+        renderInput(e.pageX, e.pageY, shiftX, shiftY)
       };
 
       document.onmouseup = function () {
